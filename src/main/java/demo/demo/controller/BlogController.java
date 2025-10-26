@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 
 @Controller // 컨트롤러 어노테이션 명시
@@ -91,14 +92,23 @@ public class BlogController {
         return "article_edit"; // .HTML 연결
     }
 
-    @PutMapping("/api/article_edit/{id}")
+    @PutMapping("/article_edit/{id}")
     public String updateArticle(@PathVariable Long id, @ModelAttribute AddArticleRequest request) {
         blogService.update(id, request);
         return "redirect:/article_list"; // 글 수정 이후 .html 연결
     }
-    @DeleteMapping("/api/article_delete/{id}")
+    @DeleteMapping("/article_delete/{id}")
     public String deleteArticle(@PathVariable Long id) {
         blogService.delete(id);
+        return "redirect:/article_list";
+    }
+
+    @PostMapping("/articles") // 게시글 작성을 처리하는 URL
+    public String addArticle(AddArticleRequest request) { 
+        // BlogService의 save 메서드를 호출하여 게시글을 저장합니다.
+        blogService.save(request); 
+
+        // 저장이 완료된 후, 게시글 목록 URL로 리다이렉트합니다.
         return "redirect:/article_list";
     }
 
