@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>NEW 블로그 - 글 수정</title> <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5">게시글 수정</h1>
+        <div class="mt-5">
+
+            <form th:action="@{/board_update/{id}(id=${boards.id})}" th:object="${boards}" method="post">
+                
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th>글 번호</th>
+                            <td><span th:text="*{id}"></span></td>
+                        </tr>
+                        <tr>
+                            <th><label for="title">제목</label></th>
+                            <td>
+                                <input type="text" id="title" class="form-control" th:field="*{title}">
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label for="content">내용</label></th>
+                            <td>
+                                <textarea id="content" class="form-control" rows="10" th:field="*{content}"></textarea>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary mr-2">수정 완료</button>
+                    <a th:href="@{/board_list}" class="btn btn-secondary">취소 (목록으로)</a>
+                </div>
+
+            </form> </div>
+    </div>
+</body>
+</html>

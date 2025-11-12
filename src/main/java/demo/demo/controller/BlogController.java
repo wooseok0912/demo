@@ -1,5 +1,6 @@
 package demo.demo.controller;
 import demo.demo.model.domain.Article;
+import demo.demo.model.domain.Board;
 import demo.demo.model.domain.testdb;
 import demo.demo.model.service.TestService; // 최상단 서비스 클래스 연동 추가
 import demo.demo.model.service.AddArticleRequest;
@@ -11,7 +12,7 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.DeleteMapping; // [수정] PostMapping -> DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -32,6 +33,7 @@ public class BlogController {
         return "index"; // index.html 연결
     }
 
+    // ... (hello, hello2, about_detailed, test1, testdb 매핑은 그대로) ...
     @GetMapping("/hello") // 전송 방식 GET
     public String hello(Model model) {
         model.addAttribute("data", "반갑습니다."); // model 설정
@@ -72,44 +74,85 @@ public class BlogController {
         return "testdb";
     }
 
-    @GetMapping("/article_list") // 게시판 링크 지정
-    public String article_list(Model model) {
-        List<Article> list = blogService.findAll(); // 게시판 리스트
-        model.addAttribute("articles", list); // 모델에 추가
-        return "article_list"; // .HTML 연결
+
+    // ==========================================================
+    // ▼▼▼ Board 기능 매핑 (최종 수정 완료) ▼▼▼
+    // ==========================================================
+
+    @GetMapping("/board_list") // 새로운 게시판 링크 지정
+    public String board_list(Model model) {
+        List<Board> list = blogService.findAll(); 
+        model.addAttribute("boards", list); 
+        return "board_list"; 
     }
 
-    @GetMapping("/article_edit/{id}") // 게시판 링크 지정
-    public String article_edit(Model model, @PathVariable Long id) {
-        Optional<Article> list = blogService.findById(id); // 선택한 게시판 글
-
+    @GetMapping("/board_view/{id}") // 게시판 링크 지정
+    public String board_view(Model model, @PathVariable Long id) {
+        Optional<Board> list = blogService.findById(id); 
         if (list.isPresent()) {
-            model.addAttribute("article", list.get()); // 존재하면 Article 객체를 모델에 추가
+            model.addAttribute("boards", list.get()); 
         } else {
-            // 처리할 로직 추가 (예: 오류 페이지로 리다이렉트, 예외 처리 등)
-            return "/error_page/article_error"; // 오류 처리 페이지로 연결(이름 수정됨)
+            return "/error_page/article_error"; 
         }
-        return "article_edit"; // .HTML 연결
+        return "board_view"; 
     }
+
+    @GetMapping("/board_edit/{id}")
+    public String showEditBoardForm(@PathVariable Long id, Model model) {
+        Optional<Board> boardOptional = blogService.findById(id);
+        if (boardOptional.isPresent()) {
+            model.addAttribute("boards", boardOptional.get()); // 'boards'로 이름 통일
+            return "board_edit";
+        } else {
+            return "/error_page/article_error";
+        }
+    }
+
+    @PostMapping("/board_update/{id}")
+    public String updateBoard(@PathVariable Long id, @ModelAttribute AddArticleRequest request) {
+        blogService.update(id, request);
+        return "redirect:/board_list"; // 'board_list'로 리다이렉트
+    }
+
+    /**
+     * [최종 수정] 
+     * PDF(24p)와 application.properties(.filter.enabled=true)에 맞춰
+     * @PostMapping -> @DeleteMapping으로 변경
+     */
+    @DeleteMapping("/api/board_delete/{id}") // <-- @PostMapping에서 변경
+    public String deleteBoard(@PathVariable Long id) {
+        blogService.delete(id);
+        return "redirect:/board_list"; // 'board_list'로 리다이렉트
+    }
+
+    @GetMapping("/board_add")
+    public String showAddBoardForm() {
+        return "board_add_form"; 
+    }
+
+    @PostMapping("/board_save")
+    public String saveBoard(@ModelAttribute AddArticleRequest request) {
+        blogService.saveBoard(request); // BlogService의 saveBoard 메소드 호출
+        return "redirect:/board_list";
+    }
+
 
     @PutMapping("/article_edit/{id}")
     public String updateArticle(@PathVariable Long id, @ModelAttribute AddArticleRequest request) {
         blogService.update(id, request);
-        return "redirect:/article_list"; // 글 수정 이후 .html 연결
+        return "redirect:/board_list"; 
     }
+
     @DeleteMapping("/article_delete/{id}")
     public String deleteArticle(@PathVariable Long id) {
         blogService.delete(id);
-        return "redirect:/article_list";
+        return "redirect:/board_list"; 
     }
 
-    @PostMapping("/articles") // 게시글 작성을 처리하는 URL
+    @PostMapping("/articles") 
     public String addArticle(AddArticleRequest request) { 
-        // BlogService의 save 메서드를 호출하여 게시글을 저장합니다.
         blogService.save(request); 
-
-        // 저장이 완료된 후, 게시글 목록 URL로 리다이렉트합니다.
-        return "redirect:/article_list";
+        return "redirect:/board_list"; 
     }
 
-}
+}   
